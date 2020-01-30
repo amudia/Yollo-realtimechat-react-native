@@ -22,11 +22,11 @@ class LoginOriginal extends Component {
               </View>
             </LinearGradient>
           </View>
-          <View style={styles.wraplogo}>
-            <Text style={styles.text}>YoLLO</Text>
-            <Icon name="wind" size={20} color="#4a675a" />
-          </View>
           <ScrollView>
+            <View style={styles.wraplogo}>
+              <Text style={styles.text}>YoLLO</Text>
+              <Icon name="wind" size={22} color="#4a675a" />
+            </View>
             <View style={styles.wrapcontent}>
               <View style={styles.wraptextinput}>
                 <TextInput
@@ -71,7 +71,7 @@ class LoginOriginal extends Component {
                   <GoogleSigninButton
                     style={styles.googleSign}
                     size={GoogleSigninButton.Size.Wide}
-                    color={GoogleSigninButton.Color.Dark}
+                    color={GoogleSigninButton.Color.Light}
                     // onPress={this.signInGoogle}
                   />
                 </View>

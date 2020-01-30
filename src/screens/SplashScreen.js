@@ -20,7 +20,7 @@ class SplashScreen extends Component {
             colors={['#757EE3', '#A972F4']}>
             <View style={styles.header}>
               <Text style={styles.text}>YoLLO</Text>
-              <Icon name="wind" size={20} color="#fff" />
+              <Icon name="wind" size={22} color="#fff" />
             </View>
           </LinearGradient>
         </View>
