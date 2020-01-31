@@ -7,31 +7,16 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import Header from '../components/Profile/Header';
+import Header from '../components/ProfileFriend/Header';
 import Icon from 'react-native-vector-icons/Feather';
-import ImagePicker from 'react-native-image-picker';
 
-class Profile extends Component {
+class ProfileFriend extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
       photo: '',
     };
   }
-
-  handleChoosePhoto = () => {
-    const options = {
-      noData: true,
-    };
-    // eslint-disable-next-line prettier/prettier
-    ImagePicker.launchImageLibrary(options, (response) => {
-      const source = {uri: response.uri};
-      if (response.uri) {
-        this.setState({photo: source});
-      }
-    });
-  };
   render() {
     return (
       <>
@@ -40,43 +25,35 @@ class Profile extends Component {
           <Header />
           <View style={styles.wrapimgprofile}>
             <View style={styles.wrapimgprofile1}>
-              <TouchableOpacity onPress={this.handleChoosePhoto}>
-                <Image
-                  source={
-                    this.state.photo !== ''
-                      ? this.state.photo
-                      : require('../assets/img/profile.jpg')
-                  }
-                  style={styles.imgprofile}
-                />
-              </TouchableOpacity>
-              <View style={styles.wrapcamera}>
-                <TouchableOpacity onPress={this.handleChoosePhoto}>
-                  <View style={styles.wrapcamera1}>
-                    <Icon name="camera" size={20} color="#fff" />
-                  </View>
-                </TouchableOpacity>
-              </View>
+              <Image
+                source={require('../assets/img/mawareva.jpg')}
+                style={styles.imgprofile}
+              />
             </View>
           </View>
           <View>
             <View style={styles.wrapitems}>
               <Icon name="user" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>Amudia Kalpa Taruna</Text>
+              <Text style={styles.textitems}>Mawar Eva</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="mail" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>amudia.ktaruna@gmail.com</Text>
+              <Text style={styles.textitems}>mawareva@gmail.com</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="info" size={20} color="#4a675a" />
               <Text style={styles.textitems}>Available</Text>
             </View>
-
+            <TouchableOpacity>
+              <View style={styles.wrapitems}>
+                <Icon name="map-pin" size={20} color="#757EE3" />
+                <Text style={styles.textitems2}>See Location</Text>
+              </View>
+            </TouchableOpacity>
             <TouchableOpacity>
               <View style={styles.wrapitems1}>
-                <Icon name="log-out" size={20} color="orange" />
-                <Text style={styles.textitems1}>LOGOUT</Text>
+                <Icon name="user-x" size={18} color="orange" />
+                <Text style={styles.textitems1}>BLOCK</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -135,6 +112,7 @@ const styles = StyleSheet.create({
   },
   textitems: {paddingLeft: 20, color: '#4a675a'},
   textitems1: {paddingLeft: 10, color: 'orange', fontWeight: 'bold'},
+  textitems2: {paddingLeft: 20, color: '#757EE3'},
 });
 
-export default Profile;
+export default ProfileFriend;

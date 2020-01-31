@@ -1,6 +1,13 @@
 import React, {Component} from 'react';
-import {Text, View, StyleSheet, StatusBar, FlatList, Image} from 'react-native';
-import {TouchableOpacity} from 'react-native-gesture-handler';
+import {
+  Text,
+  View,
+  StyleSheet,
+  StatusBar,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import Header from '../components/ListChat/Header';
 
 const contact = [
@@ -41,21 +48,28 @@ class ListChat extends Component {
             <FlatList
               data={contact}
               renderItem={({item}) => (
-                <TouchableOpacity
-                  onPress={() => this.props.navigation.navigate('ChatDetail')}>
-                  <View style={styles.listChat}>
+                <View style={styles.listChat}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      this.props.navigation.navigate('ProfileFriend')
+                    }>
                     <View style={styles.profilePic}>
                       <Image
                         source={require('../assets/img/profile.jpg')}
                         style={styles.imguser}
                       />
                     </View>
-                    <View style={styles.wrapchat}>
+                  </TouchableOpacity>
+                  <View style={styles.wrapchat}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        this.props.navigation.navigate('ChatDetail')
+                      }>
                       <Text style={styles.personName}>{item.name}</Text>
                       <Text style={styles.personChat}>{item.chat}</Text>
-                    </View>
+                    </TouchableOpacity>
                   </View>
-                </TouchableOpacity>
+                </View>
               )}
               keyExtractor={item => item.id}
             />

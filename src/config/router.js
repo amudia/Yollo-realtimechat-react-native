@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/Feather';
 
 import ListChat from '../screens/ListChat';
 import ChatDetail from '../screens/ChatDetail';
+import ProfileFriend from '../screens/ProfileFriend';
 
 import Contact from '../screens/Contact';
 import Profile from '../screens/Profile';
@@ -59,6 +60,12 @@ const ChatNav = createStackNavigator(
     },
     ChatDetail: {
       screen: ChatDetail,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    ProfileFriend: {
+      screen: ProfileFriend,
       navigationOptions: {
         headerShown: false,
       },
