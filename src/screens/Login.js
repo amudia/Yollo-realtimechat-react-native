@@ -5,6 +5,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {TextInput, Button} from 'react-native-paper';
 import {GoogleSigninButton} from 'react-native-google-signin';
 import {withNavigation} from 'react-navigation';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 class LoginOriginal extends Component {
   render() {
@@ -50,19 +51,19 @@ class LoginOriginal extends Component {
 
                 <Button
                   mode="outlined"
-                  color="#757EE3"
+                  color="#fff"
                   style={styles.btnlogin}
                   onPress={() => this.props.navigation.navigate('Chat')}>
                   LOGIN
                 </Button>
-                <Button
-                  mode="outlined"
-                  color="#FFF"
-                  style={styles.btnregister}
-                  onPress={() => this.props.navigation.navigate('Register')}>
-                  REGISTER
-                </Button>
 
+                <View style={styles.wrapsignup}>
+                  <Text>Don't have an account? </Text>
+                  <TouchableOpacity
+                    onPress={() => this.props.navigation.navigate('Register')}>
+                    <Text style={styles.textsignup}> Sign up!</Text>
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.textor}>
                   <Text>OR</Text>
                 </View>
@@ -109,12 +110,7 @@ const styles = StyleSheet.create({
   },
   wrapcontent: {justifyContent: 'center', alignItems: 'center'},
   wraptextinput: {width: '100%', paddingHorizontal: 20},
-  btnlogin: {borderColor: '#757EE3', backgroundColor: '#fff', marginTop: 20},
-  btnregister: {
-    borderColor: '#757EE3',
-    backgroundColor: '#757EE3',
-    marginTop: 20,
-  },
+  btnlogin: {borderColor: '#757EE3', backgroundColor: '#757EE3', marginTop: 20},
   textor: {alignItems: 'center', marginTop: 20},
   wrapgooglesign: {alignItems: 'center', justifyContent: 'center'},
   googleSign: {
@@ -128,6 +124,13 @@ const styles = StyleSheet.create({
     color: '#4a675a',
     fontFamily: 'Holaholo',
   },
+  wrapsignup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 20,
+  },
+  textsignup: {color: 'orange'},
 });
 
 const Login = withNavigation(LoginOriginal);

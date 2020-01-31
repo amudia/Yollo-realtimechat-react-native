@@ -9,7 +9,10 @@ import ChatDetail from '../screens/ChatDetail';
 
 import Contact from '../screens/Contact';
 import Profile from '../screens/Profile';
+
 import Login from '../screens/Login';
+import Register from '../screens/Register';
+
 import SplashScreen from '../screens/SplashScreen';
 
 const SplashScreenNav = createStackNavigator(
@@ -30,6 +33,12 @@ const AuthNav = createStackNavigator(
   {
     Login: {
       screen: Login,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    Register: {
+      screen: Register,
       navigationOptions: {
         headerShown: false,
       },
