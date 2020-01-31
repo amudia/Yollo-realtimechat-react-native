@@ -6,8 +6,25 @@ import {TextInput, Button} from 'react-native-paper';
 import {GoogleSigninButton} from 'react-native-google-signin';
 import {withNavigation} from 'react-navigation';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import firebase from 'react-native-firebase';
 
 class LoginOriginal extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      email: '',
+      password: '',
+      errorMessage: null,
+    };
+  }
+  loginPress = () => {
+    const {email, password} = this.state;
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(() => this.props.navigation.navigate('Chat'))
+      .catch(error => this.setState({errorMessage: error.message}));
+  };
   render() {
     return (
       <>
@@ -29,12 +46,17 @@ class LoginOriginal extends Component {
               <Icon name="wind" size={22} color="#4a675a" />
             </View>
             <View style={styles.wrapcontent}>
+              {this.state.errorMessage && (
+                <Text style={styles.texterr}>{this.state.errorMessage}</Text>
+              )}
               <View style={styles.wraptextinput}>
                 <TextInput
                   label="Email"
                   keyboardType="email-address"
                   mode="outlined"
                   style={styles.textInput}
+                  onChangeText={email => this.setState({email})}
+                  value={this.state.email}
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
@@ -44,6 +66,8 @@ class LoginOriginal extends Component {
                   mode="outlined"
                   secureTextEntry={true}
                   style={styles.textInput}
+                  onChangeText={password => this.setState({password})}
+                  value={this.state.password}
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
@@ -53,7 +77,7 @@ class LoginOriginal extends Component {
                   mode="outlined"
                   color="#fff"
                   style={styles.btnlogin}
-                  onPress={() => this.props.navigation.navigate('Chat')}>
+                  onPress={this.loginPress}>
                   LOGIN
                 </Button>
 
@@ -131,6 +155,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   textsignup: {color: 'orange'},
+  texterr: {color: 'red'},
 });
 
 const Login = withNavigation(LoginOriginal);

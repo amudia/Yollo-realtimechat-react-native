@@ -9,6 +9,8 @@ import ChatDetail from '../screens/ChatDetail';
 import ProfileFriend from '../screens/ProfileFriend';
 
 import Contact from '../screens/Contact';
+import AddFriend from '../screens/AddFriend';
+
 import Profile from '../screens/Profile';
 
 import Login from '../screens/Login';
@@ -91,6 +93,12 @@ const ContactNav = createStackNavigator(
   {
     Contact: {
       screen: Contact,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    AddFriend: {
+      screen: AddFriend,
       navigationOptions: {
         headerShown: false,
       },

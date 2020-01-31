@@ -6,8 +6,25 @@ import {TextInput, Button} from 'react-native-paper';
 // import {GoogleSigninButton} from 'react-native-google-signin';
 import {withNavigation} from 'react-navigation';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+import firebase from 'react-native-firebase';
 
 class RegisterOriginal extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      email: '',
+      password: '',
+      errorMessage: null,
+    };
+  }
+  signUpButtonPress = () => {
+    const {email, password} = this.state;
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(user => this.props.navigation.navigate('Login'))
+      .catch(error => this.setState({errorMessage: error.message}));
+  };
   render() {
     return (
       <>
@@ -29,8 +46,12 @@ class RegisterOriginal extends Component {
               <Icon name="wind" size={22} color="#4a675a" />
             </View>
             <View style={styles.wrapcontent}>
+              {this.state.errorMessage && (
+                <Text style={styles.texterr}>{this.state.errorMessage}</Text>
+              )}
+
               <View style={styles.wraptextinput}>
-                <TextInput
+                {/* <TextInput
                   label="Your Name"
                   keyboardType="twitter"
                   mode="outlined"
@@ -38,12 +59,14 @@ class RegisterOriginal extends Component {
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
-                />
+                /> */}
                 <TextInput
                   label="Email"
                   keyboardType="email-address"
                   mode="outlined"
                   style={styles.textInput}
+                  onChangeText={email => this.setState({email})}
+                  value={this.state.email}
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
@@ -53,6 +76,8 @@ class RegisterOriginal extends Component {
                   mode="outlined"
                   secureTextEntry={true}
                   style={styles.textInput}
+                  onChangeText={password => this.setState({password})}
+                  value={this.state.password}
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
@@ -61,7 +86,7 @@ class RegisterOriginal extends Component {
                   mode="outlined"
                   color="#FFF"
                   style={styles.btnregister}
-                  onPress={() => this.props.navigation.navigate('Login')}>
+                  onPress={this.signUpButtonPress}>
                   REGISTER
                 </Button>
                 <View style={styles.wrapsignup}>
@@ -143,6 +168,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   textsignup: {color: 'orange'},
+  texterr: {color: 'red'},
 });
 
 const Register = withNavigation(RegisterOriginal);

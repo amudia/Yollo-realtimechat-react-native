@@ -10,6 +10,7 @@ import {
 import Header from '../components/Profile/Header';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-picker';
+import firebase from 'react-native-firebase';
 
 class Profile extends Component {
   constructor(props) {
@@ -17,9 +18,20 @@ class Profile extends Component {
 
     this.state = {
       photo: '',
+      currentUser: null,
     };
   }
-
+  componentDidMount() {
+    const {currentUser} = firebase.auth();
+    // eslint-disable-next-line react/no-did-mount-set-state
+    this.setState({currentUser});
+  }
+  signOutUser = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(() => this.props.navigation.navigate('Login'));
+  };
   handleChoosePhoto = () => {
     const options = {
       noData: true,
@@ -73,7 +85,7 @@ class Profile extends Component {
               <Text style={styles.textitems}>Available</Text>
             </View>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={this.signOutUser}>
               <View style={styles.wrapitems1}>
                 <Icon name="log-out" size={20} color="orange" />
                 <Text style={styles.textitems1}>LOGOUT</Text>

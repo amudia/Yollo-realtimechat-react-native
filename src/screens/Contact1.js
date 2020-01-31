@@ -1,15 +1,16 @@
 import React, {Component} from 'react';
 import {
+  Text,
   View,
   StyleSheet,
   StatusBar,
   FlatList,
+  Image,
   TouchableOpacity,
 } from 'react-native';
 import {Button} from 'native-base';
 import Header from '../components/Contact/Header';
 import Icon from 'react-native-vector-icons/Feather';
-import {ListItem} from 'react-native-elements';
 
 const contact = [
   {
@@ -86,23 +87,7 @@ class Contact extends Component {
       refreshing: false,
     };
   }
-  keyExtractor = (item, index) => index.toString();
-  renderItem = ({item}) => (
-    <TouchableOpacity
-      onPress={() => this.props.navigation.navigate('ChatDetail')}>
-      <ListItem
-        title={item.name}
-        subtitle={item.status}
-        subtitleStyle={styles.personStatus}
-        leftAvatar={{
-          source: item.avatar_url && {uri: item.avatar_url},
-          title: item.name[0],
-        }}
-        bottomDivider
-        onPress={() => this.props.navigation.navigate('ChatDetail')}
-      />
-    </TouchableOpacity>
-  );
+
   render() {
     return (
       <>
@@ -114,19 +99,30 @@ class Contact extends Component {
               data={contact}
               onRefresh={() => console.log('refresh')}
               refreshing={this.state.refreshing}
-              keyExtractor={this.keyExtractor}
-              renderItem={this.renderItem}
+              renderItem={({item}) => (
+                <View style={styles.listChat}>
+                  <View style={styles.profilePic}>
+                    <Image
+                      source={require('../assets/img/profile.jpg')}
+                      style={styles.imguser}
+                    />
+                  </View>
+                  <View style={styles.wrapchat}>
+                    <TouchableOpacity>
+                      <Text style={styles.personName}>{item.name}</Text>
+                      <Text style={styles.personStatus}>{item.status}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              keyExtractor={item => item.id}
             />
           </View>
         </View>
 
         <View style={styles.btnplus}>
           <TouchableOpacity>
-            <Button
-              transparent
-              rounded
-              iconLeft
-              onPress={() => this.props.navigation.navigate('AddFriend')}>
+            <Button transparent rounded iconLeft onPress={this.submit}>
               <Icon name="plus" size={20} color="#fff" />
             </Button>
           </TouchableOpacity>

@@ -1,23 +1,20 @@
 import React, {Component} from 'react';
 import {
+  Text,
   View,
   StyleSheet,
   StatusBar,
   FlatList,
+  Image,
   TouchableOpacity,
 } from 'react-native';
 import Header from '../components/ListChat/Header';
-import {ListItem} from 'react-native-elements';
 
 const contact = [
   {
     id: 1,
     name: 'User 1',
-    avatar_url:
-      'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg',
-
     chat: 'Hello',
-    badge: '5',
   },
   {
     id: 2,
@@ -39,53 +36,8 @@ const contact = [
     name: 'User 5',
     chat: 'Ni Hao',
   },
-
-  {
-    id: 6,
-    name: 'User 3',
-    chat: 'Bonjour',
-  },
-  {
-    id: 7,
-    name: 'User 4',
-    chat: 'Namaste',
-  },
-  {
-    id: 8,
-    name: 'User 5',
-    chat: 'Ni Hao',
-  },
 ];
-
 class ListChat extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      refreshing: false,
-    };
-  }
-  keyExtractor = (item, index) => index.toString();
-  renderItem = ({item}) => (
-    <TouchableOpacity
-      onPress={() => this.props.navigation.navigate('ChatDetail')}>
-      <ListItem
-        title={item.name}
-        titleStyle={styles.personName}
-        subtitle={item.chat}
-        subtitleStyle={styles.personChat}
-        leftAvatar={{
-          source: item.avatar_url && {uri: item.avatar_url},
-          title: item.name[0],
-        }}
-        bottomDivider
-        badge={{
-          value: item.badge,
-          status: 'success',
-        }}
-        onPress={() => this.props.navigation.navigate('ChatDetail')}
-      />
-    </TouchableOpacity>
-  );
   render() {
     return (
       <>
@@ -95,10 +47,31 @@ class ListChat extends Component {
           <View>
             <FlatList
               data={contact}
-              onRefresh={() => console.log('refresh')}
-              refreshing={this.state.refreshing}
-              keyExtractor={this.keyExtractor}
-              renderItem={this.renderItem}
+              renderItem={({item}) => (
+                <View style={styles.listChat}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      this.props.navigation.navigate('ProfileFriend')
+                    }>
+                    <View style={styles.profilePic}>
+                      <Image
+                        source={require('../assets/img/profile.jpg')}
+                        style={styles.imguser}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.wrapchat}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        this.props.navigation.navigate('ChatDetail')
+                      }>
+                      <Text style={styles.personName}>{item.name}</Text>
+                      <Text style={styles.personChat}>{item.chat}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              keyExtractor={item => item.id}
             />
           </View>
         </View>
@@ -108,7 +81,7 @@ class ListChat extends Component {
 }
 
 const styles = StyleSheet.create({
-  root: {flex: 1, backgroundColor: '#fff', paddingBottom: 60},
+  root: {flex: 1, backgroundColor: '#fff'},
   profilePic: {
     height: 50,
     width: 50,
@@ -140,7 +113,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   personChat: {
-    color: '#585c5e',
+    color: '#1f1f1f',
   },
 });
 

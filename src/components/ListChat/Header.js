@@ -30,7 +30,7 @@ export default class Header extends Component {
 }
 
 const styles = StyleSheet.create({
-  wrapheader: {marginBottom: 10, elevation: 5},
+  wrapheader: {marginBottom: 0, elevation: 5},
   header: {
     height: 55,
     justifyContent: 'flex-end',
