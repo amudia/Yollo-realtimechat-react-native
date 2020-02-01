@@ -18,20 +18,24 @@ class Profile extends Component {
 
     this.state = {
       photo: '',
+      email: '',
+      displayName: '',
       currentUser: null,
     };
   }
   componentDidMount() {
-    const {currentUser} = firebase.auth();
+    const {email, displayName} = firebase.auth().currentUser;
     // eslint-disable-next-line react/no-did-mount-set-state
-    this.setState({currentUser});
+    this.setState({email, displayName});
   }
+
   signOutUser = () => {
     firebase
       .auth()
       .signOut()
       .then(() => this.props.navigation.navigate('Login'));
   };
+
   handleChoosePhoto = () => {
     const options = {
       noData: true,
@@ -74,11 +78,11 @@ class Profile extends Component {
           <View>
             <View style={styles.wrapitems}>
               <Icon name="user" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>Amudia Kalpa Taruna</Text>
+              <Text style={styles.textitems}>{this.state.displayName}</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="mail" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>amudia.ktaruna@gmail.com</Text>
+              <Text style={styles.textitems}>{this.state.email}</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="info" size={20} color="#4a675a" />

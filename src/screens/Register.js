@@ -1,29 +1,135 @@
 import React, {Component} from 'react';
-import {Text, View, StyleSheet, ScrollView, StatusBar} from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ScrollView,
+  StatusBar,
+  Alert,
+  Keyboard,
+  // Image,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import {TextInput, Button} from 'react-native-paper';
-// import {GoogleSigninButton} from 'react-native-google-signin';
 import {withNavigation} from 'react-navigation';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import firebase from 'react-native-firebase';
+import ImagePicker from 'react-native-image-picker';
+import {setData, signup, pushData} from '../utils/initialize';
+import {Spinner} from 'native-base';
 
 class RegisterOriginal extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      fullname: '',
       email: '',
       password: '',
+      photo: '',
       errorMessage: null,
+      isLoading: false,
+      isSubmit: false,
     };
   }
-  signUpButtonPress = () => {
-    const {email, password} = this.state;
-    firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, password)
-      .then(user => this.props.navigation.navigate('Login'))
-      .catch(error => this.setState({errorMessage: error.message}));
+
+  async componentDidUpdate(prevProps, prevState) {
+    if (prevState.isSubmit !== this.state.isSubmit) {
+      // eslint-disable-next-line react/no-did-update-set-state
+      await this.setState({
+        isLoading: false,
+      });
+      await this.register();
+    }
+  }
+  async register() {
+    try {
+      await this.setState({
+        isLoading: true,
+        isAuth: true,
+      });
+      const responseFirebase = await signup(
+        this.state.email,
+        this.state.password,
+      );
+      // await this.clearState();
+      if (responseFirebase) {
+        const uid = await responseFirebase.user.uid;
+        const email = await responseFirebase.user.email;
+        await pushData('messages/' + uid, {
+          isRegister: true,
+        });
+        await pushData('users/' + uid, {
+          uid: uid,
+          fullname: this.state.fullname,
+          email: email,
+          photo: null,
+        });
+        await this.props.navigation.replace('Login');
+      } else {
+        await this.setState({
+          isLoading: false,
+        });
+        await Alert.alert(
+          'Error',
+          'Oops.. something error',
+          [
+            {
+              text: 'Ok',
+              style: 'cancel',
+            },
+          ],
+          {cancelable: false},
+        );
+      }
+    } catch ({message}) {
+      await this.setState({
+        isLoading: false,
+      });
+      Alert.alert(
+        'Error',
+        message,
+        [
+          {
+            text: 'Ok',
+            style: 'cancel',
+          },
+        ],
+        {cancelable: false},
+      );
+    }
+  }
+
+  onSubmit() {
+    Keyboard.dismiss();
+    this.setState({
+      isSubmit: true,
+      isLoading: true,
+    });
+  }
+
+  clearState() {
+    this.setState({
+      fullname: '',
+      email: '',
+      password: '',
+    });
+  }
+
+  handleFullname = fullname => {
+    this.setState({fullname});
+  };
+
+  handleChoosePhoto = () => {
+    const options = {
+      noData: true,
+    };
+    // eslint-disable-next-line prettier/prettier
+    ImagePicker.launchImageLibrary(options, (response) => {
+      const source = {uri: response.uri};
+      if (response.uri) {
+        this.setState({photo: source});
+      }
+    });
   };
   render() {
     return (
@@ -49,24 +155,51 @@ class RegisterOriginal extends Component {
               {this.state.errorMessage && (
                 <Text style={styles.texterr}>{this.state.errorMessage}</Text>
               )}
-
               <View style={styles.wraptextinput}>
-                {/* <TextInput
-                  label="Your Name"
-                  keyboardType="twitter"
+                {/* <View style={{alignItems: 'center'}}>
+                  <TouchableOpacity
+                    style={{
+                      height: 120,
+                      width: 120,
+                      backgroundColor: '#eee',
+                      borderRadius: 100,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onPress={this.handleChoosePhoto}>
+                    <Image
+                      source={
+                        this.state.photo !== ''
+                          ? this.state.photo
+                          : require('../assets/img/profile.jpg')
+                      }
+                      style={{height: 120, width: 120, borderRadius: 100}}
+                    />
+                  </TouchableOpacity>
+                </View> */}
+                <TextInput
+                  label="Full Name"
                   mode="outlined"
+                  autoCapitalize="words"
                   style={styles.textInput}
+                  value={this.state.fullname}
+                  onChangeText={fullname => this.handleFullname(fullname)}
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
-                /> */}
+                />
                 <TextInput
                   label="Email"
                   keyboardType="email-address"
+                  autoCapitalize="none"
                   mode="outlined"
                   style={styles.textInput}
-                  onChangeText={email => this.setState({email})}
                   value={this.state.email}
+                  onChangeText={value =>
+                    this.setState({
+                      email: value,
+                    })
+                  }
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
@@ -76,8 +209,12 @@ class RegisterOriginal extends Component {
                   mode="outlined"
                   secureTextEntry={true}
                   style={styles.textInput}
-                  onChangeText={password => this.setState({password})}
                   value={this.state.password}
+                  onChangeText={value =>
+                    this.setState({
+                      password: value,
+                    })
+                  }
                   theme={{
                     colors: {primary: '#757EE3', underlineColor: 'transparent'},
                   }}
@@ -86,8 +223,9 @@ class RegisterOriginal extends Component {
                   mode="outlined"
                   color="#FFF"
                   style={styles.btnregister}
-                  onPress={this.signUpButtonPress}>
-                  REGISTER
+                  onPress={event => this.onSubmit(event)}>
+                  {this.state.isLoading && <Spinner />}
+                  {!this.state.isLoading && <Text>REGISTER</Text>} 
                 </Button>
                 <View style={styles.wrapsignup}>
                   <Text>Already have an account? </Text>
@@ -96,18 +234,6 @@ class RegisterOriginal extends Component {
                     <Text style={styles.textsignup}> Sign In!</Text>
                   </TouchableOpacity>
                 </View>
-                {/* <View style={styles.textor}>
-                  <Text>OR</Text>
-                </View>
-
-                <View style={styles.wrapgooglesign}>
-                  <GoogleSigninButton
-                    style={styles.googleSign}
-                    size={GoogleSigninButton.Size.Wide}
-                    color={GoogleSigninButton.Color.Light}
-                    // onPress={this.signInGoogle}
-                  />
-                </View> */}
               </View>
             </View>
           </ScrollView>

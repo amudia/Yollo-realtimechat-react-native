@@ -52,6 +52,7 @@ class LoginOriginal extends Component {
               <View style={styles.wraptextinput}>
                 <TextInput
                   label="Email"
+                  autoCapitalize="none"
                   keyboardType="email-address"
                   mode="outlined"
                   style={styles.textInput}
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   textsignup: {color: 'orange'},
-  texterr: {color: 'red'},
+  texterr: {color: 'red', textAlign: 'center'},
 });
 
 const Login = withNavigation(LoginOriginal);

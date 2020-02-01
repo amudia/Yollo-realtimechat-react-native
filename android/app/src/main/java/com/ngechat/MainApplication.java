@@ -1,5 +1,6 @@
 package com.ngechat;
 
+import io.invertase.firebase.database.RNFirebaseDatabasePackage;
 import io.invertase.firebase.auth.RNFirebaseAuthPackage;
 import android.app.Application;
 import android.content.Context;
@@ -29,6 +30,7 @@ public class MainApplication extends Application implements ReactApplication {
           // packages.add(new MyReactNativePackage());
           
           packages.add(new RNFirebaseAuthPackage());
+          packages.add(new RNFirebaseDatabasePackage());
           return packages;
         }
 
