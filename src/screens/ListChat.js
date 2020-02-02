@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import Header from '../components/ListChat/Header';
 import {ListItem} from 'react-native-elements';
+import firebase from 'react-native-firebase';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const contact = [
   {
@@ -19,42 +21,6 @@ const contact = [
     chat: 'Hello',
     badge: '5',
   },
-  {
-    id: 2,
-    name: 'User 2',
-    chat: 'Hi',
-  },
-  {
-    id: 3,
-    name: 'User 3',
-    chat: 'Bonjour',
-  },
-  {
-    id: 4,
-    name: 'User 4',
-    chat: 'Namaste',
-  },
-  {
-    id: 5,
-    name: 'User 5',
-    chat: 'Ni Hao',
-  },
-
-  {
-    id: 6,
-    name: 'User 3',
-    chat: 'Bonjour',
-  },
-  {
-    id: 7,
-    name: 'User 4',
-    chat: 'Namaste',
-  },
-  {
-    id: 8,
-    name: 'User 5',
-    chat: 'Ni Hao',
-  },
 ];
 
 class ListChat extends Component {
@@ -62,30 +28,45 @@ class ListChat extends Component {
     super(props);
     this.state = {
       refreshing: false,
+      isLoading: true,
+      userList: [],
+      uid: '',
     };
   }
-  keyExtractor = (item, index) => index.toString();
+  componentDidMount = async () => {
+    const uid = await AsyncStorage.getItem('userid');
+    this.setState({uid: uid, refreshing: true});
+    await firebase
+      .database()
+      .ref('/user')
+      .on('child_added', data => {
+        let person = data.val();
+        if (person.id != uid) {
+          this.setState(prevData => {
+            return {userList: [...prevData.userList, person]};
+          });
+          this.setState({refreshing: false});
+        }
+      });
+  };
+
   renderItem = ({item}) => (
     <TouchableOpacity
-      onPress={() => this.props.navigation.navigate('ChatDetail')}>
+      onPress={() => this.props.navigation.navigate('ChatDetail', {item})}>
       <ListItem
         title={item.name}
         titleStyle={styles.personName}
-        subtitle={item.chat}
-        subtitleStyle={styles.personChat}
+        subtitle={item.email}
+        subtitleStyle={styles.email}
         leftAvatar={{
-          source: item.avatar_url && {uri: item.avatar_url},
-          title: item.name[0],
+          source: item.photo && {uri: item.photo},
         }}
         bottomDivider
-        badge={{
-          value: item.badge,
-          status: 'success',
-        }}
-        onPress={() => this.props.navigation.navigate('ChatDetail')}
+        onPress={() => this.props.navigation.navigate('ChatDetail', {item})}
       />
     </TouchableOpacity>
   );
+  // keyExtractor = (item, index) => index.toString();
   render() {
     return (
       <>
@@ -94,11 +75,11 @@ class ListChat extends Component {
           <Header />
           <View>
             <FlatList
-              data={contact}
+              data={this.state.userList}
               onRefresh={() => console.log('refresh')}
               refreshing={this.state.refreshing}
-              keyExtractor={this.keyExtractor}
               renderItem={this.renderItem}
+              // keyExtractor={this.keyExtractor}
             />
           </View>
         </View>

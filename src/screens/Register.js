@@ -5,131 +5,166 @@ import {
   StyleSheet,
   ScrollView,
   StatusBar,
-  Alert,
-  Keyboard,
-  // Image,
+  Platform,
+  ToastAndroid,
+  PermissionsAndroid,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import {TextInput, Button} from 'react-native-paper';
 import {withNavigation} from 'react-navigation';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import ImagePicker from 'react-native-image-picker';
-import {setData, signup, pushData} from '../utils/initialize';
-import {Spinner} from 'native-base';
+import Geolocation from 'react-native-geolocation-service';
+import firebase from 'react-native-firebase';
 
 class RegisterOriginal extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      fullname: '',
+      isVisible: false,
+      name: '',
       email: '',
       password: '',
-      photo: '',
+      latitude: null,
+      longitude: null,
       errorMessage: null,
-      isLoading: false,
-      isSubmit: false,
+      loading: false,
+      updatesEnabled: false,
     };
   }
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (prevState.isSubmit !== this.state.isSubmit) {
-      // eslint-disable-next-line react/no-did-update-set-state
-      await this.setState({
-        isLoading: false,
-      });
-      await this.register();
-    }
-  }
-  async register() {
-    try {
-      await this.setState({
-        isLoading: true,
-        isAuth: true,
-      });
-      const responseFirebase = await signup(
-        this.state.email,
-        this.state.password,
-      );
-      // await this.clearState();
-      if (responseFirebase) {
-        const uid = await responseFirebase.user.uid;
-        const email = await responseFirebase.user.email;
-        await pushData('messages/' + uid, {
-          isRegister: true,
-        });
-        await pushData('users/' + uid, {
-          uid: uid,
-          fullname: this.state.fullname,
-          email: email,
-          photo: null,
-        });
-        await this.props.navigation.replace('Login');
-      } else {
-        await this.setState({
-          isLoading: false,
-        });
-        await Alert.alert(
-          'Error',
-          'Oops.. something error',
-          [
-            {
-              text: 'Ok',
-              style: 'cancel',
-            },
-          ],
-          {cancelable: false},
-        );
-      }
-    } catch ({message}) {
-      await this.setState({
-        isLoading: false,
-      });
-      Alert.alert(
-        'Error',
-        message,
-        [
-          {
-            text: 'Ok',
-            style: 'cancel',
-          },
-        ],
-        {cancelable: false},
-      );
-    }
-  }
-
-  onSubmit() {
-    Keyboard.dismiss();
-    this.setState({
-      isSubmit: true,
-      isLoading: true,
-    });
-  }
-
-  clearState() {
-    this.setState({
-      fullname: '',
-      email: '',
-      password: '',
-    });
-  }
-
-  handleFullname = fullname => {
-    this.setState({fullname});
+  componentDidMount = async () => {
+    await this.getLocation();
   };
 
-  handleChoosePhoto = () => {
-    const options = {
-      noData: true,
-    };
-    // eslint-disable-next-line prettier/prettier
-    ImagePicker.launchImageLibrary(options, (response) => {
-      const source = {uri: response.uri};
-      if (response.uri) {
-        this.setState({photo: source});
-      }
+  hasLocationPermission = async () => {
+    if (
+      Platform.OS === 'ios' ||
+      (Platform.OS === 'android' && Platform.Version < 23)
+    ) {
+      return true;
+    }
+    const hasPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+    if (hasPermission) {
+      return true;
+    }
+    const status = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+    if (status === PermissionsAndroid.RESULTS.GRANTED) {
+      return true;
+    }
+    if (status === PermissionsAndroid.RESULTS.DENIED) {
+      ToastAndroid.show(
+        'Location Permission Denied By User.',
+        ToastAndroid.LONG,
+      );
+    } else if (status === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+      ToastAndroid.show(
+        'Location Permission Revoked By User.',
+        ToastAndroid.LONG,
+      );
+    }
+    return false;
+  };
+
+  getLocation = async () => {
+    const hasLocationPermission = await this.hasLocationPermission();
+
+    if (!hasLocationPermission) {
+      return;
+    }
+
+    this.setState({loading: true}, () => {
+      Geolocation.getCurrentPosition(
+        position => {
+          this.setState({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            loading: false,
+          });
+          console.warn(position);
+        },
+        error => {
+          this.setState({errorMessage: error, loading: false});
+          console.warn(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 8000,
+          distanceFilter: 50,
+          forceRequestLocation: true,
+        },
+      );
     });
+  };
+  toLogin = () => {
+    this.props.navigation.navigate('Login');
+  };
+
+  inputHandler = (name, value) => {
+    this.setState(() => ({[name]: value}));
+  };
+  submitForm = () => {
+    const {email, name, password} = this.state;
+    if (name.length < 1) {
+      ToastAndroid.show('Please input your fullname', ToastAndroid.LONG);
+    } else if (email.length < 6) {
+      ToastAndroid.show(
+        'Please input a valid email address',
+        ToastAndroid.LONG,
+      );
+    } else if (password.length < 6) {
+      ToastAndroid.show(
+        'Password must be at least 6 characters',
+        ToastAndroid.LONG,
+      );
+    } else {
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, password)
+        .then(response => {
+          console.warn(response);
+          firebase
+            .database()
+            .ref('/user/' + response.user.uid)
+            .set({
+              name: this.state.name,
+              status: 'Offline',
+              email: this.state.email,
+              photo: 'https://image.flaticon.com/icons/png/512/147/147144.png',
+              latitude: this.state.latitude,
+              longitude: this.state.longitude,
+              id: response.user.uid,
+            })
+            .catch(error => {
+              ToastAndroid.show(error.message, ToastAndroid.LONG);
+              this.setState({
+                name: '',
+                email: '',
+                password: '',
+              });
+            });
+          ToastAndroid.show(
+            'Your account is successfully registered!',
+            ToastAndroid.LONG,
+          );
+
+          this.props.navigation.navigate('Login');
+        })
+        .catch(error => {
+          this.setState({
+            errorMessage: error.message,
+            name: '',
+            email: '',
+            password: '',
+          });
+          ToastAndroid.show(this.state.errorMessage.message, ToastAndroid.LONG);
+        });
+      // Alert.alert('Error Message', this.state.errorMessage);
+    }
   };
   render() {
     return (
@@ -156,36 +191,17 @@ class RegisterOriginal extends Component {
                 <Text style={styles.texterr}>{this.state.errorMessage}</Text>
               )}
               <View style={styles.wraptextinput}>
-                {/* <View style={{alignItems: 'center'}}>
-                  <TouchableOpacity
-                    style={{
-                      height: 120,
-                      width: 120,
-                      backgroundColor: '#eee',
-                      borderRadius: 100,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    onPress={this.handleChoosePhoto}>
-                    <Image
-                      source={
-                        this.state.photo !== ''
-                          ? this.state.photo
-                          : require('../assets/img/profile.jpg')
-                      }
-                      style={{height: 120, width: 120, borderRadius: 100}}
-                    />
-                  </TouchableOpacity>
-                </View> */}
                 <TextInput
                   label="Full Name"
                   mode="outlined"
                   autoCapitalize="words"
                   style={styles.textInput}
-                  value={this.state.fullname}
-                  onChangeText={fullname => this.handleFullname(fullname)}
+                  onChangeText={txt => this.inputHandler('name', txt)}
                   theme={{
-                    colors: {primary: '#757EE3', underlineColor: 'transparent'},
+                    colors: {
+                      primary: '#757EE3',
+                      underlineColor: 'transparent',
+                    },
                   }}
                 />
                 <TextInput
@@ -194,14 +210,12 @@ class RegisterOriginal extends Component {
                   autoCapitalize="none"
                   mode="outlined"
                   style={styles.textInput}
-                  value={this.state.email}
-                  onChangeText={value =>
-                    this.setState({
-                      email: value,
-                    })
-                  }
+                  onChangeText={txt => this.inputHandler('email', txt)}
                   theme={{
-                    colors: {primary: '#757EE3', underlineColor: 'transparent'},
+                    colors: {
+                      primary: '#757EE3',
+                      underlineColor: 'transparent',
+                    },
                   }}
                 />
                 <TextInput
@@ -209,23 +223,21 @@ class RegisterOriginal extends Component {
                   mode="outlined"
                   secureTextEntry={true}
                   style={styles.textInput}
-                  value={this.state.password}
-                  onChangeText={value =>
-                    this.setState({
-                      password: value,
-                    })
-                  }
+                  onChangeText={txt => this.inputHandler('password', txt)}
                   theme={{
-                    colors: {primary: '#757EE3', underlineColor: 'transparent'},
+                    colors: {
+                      primary: '#757EE3',
+                      underlineColor: 'transparent',
+                    },
                   }}
                 />
                 <Button
                   mode="outlined"
                   color="#FFF"
+                  loading={this.state.loading}
                   style={styles.btnregister}
-                  onPress={event => this.onSubmit(event)}>
-                  {this.state.isLoading && <Spinner />}
-                  {!this.state.isLoading && <Text>REGISTER</Text>} 
+                  onPress={this.submitForm}>
+                  REGISTER
                 </Button>
                 <View style={styles.wrapsignup}>
                   <Text>Already have an account? </Text>

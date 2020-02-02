@@ -6,34 +6,54 @@ import {
   Text,
   Image,
   TouchableOpacity,
+  ToastAndroid,
 } from 'react-native';
 import Header from '../components/Profile/Header';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-picker';
 import firebase from 'react-native-firebase';
+import AsyncStorage from '@react-native-community/async-storage';
 
 class Profile extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      photo: '',
-      email: '',
-      displayName: '',
-      currentUser: null,
+      userId: null,
+      permissionsGranted: null,
+      errorMessage: null,
+      loading: false,
+      updatesEnabled: false,
+      location: {},
+      photo: null,
+      imageUri: null,
+      imgSource: '',
+      uploading: false,
     };
   }
-  componentDidMount() {
-    const {email, displayName} = firebase.auth().currentUser;
-    // eslint-disable-next-line react/no-did-mount-set-state
-    this.setState({email, displayName});
-  }
+  componentDidMount = async () => {
+    const userId = await AsyncStorage.getItem('userid');
+    const userName = await AsyncStorage.getItem('user.name');
+    const userAvatar = await AsyncStorage.getItem('user.photo');
+    const userEmail = await AsyncStorage.getItem('user.email');
+    this.setState({userId, userName, userAvatar, userEmail});
+  };
 
-  signOutUser = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => this.props.navigation.navigate('Login'));
+  handleLogout = async () => {
+    await AsyncStorage.getItem('userid')
+      .then(async userid => {
+        firebase
+          .database()
+          .ref('user/' + userid)
+          .update({status: 'Offline'});
+        await AsyncStorage.clear();
+        firebase.auth().signOut();
+        ToastAndroid.show('Logout success', ToastAndroid.LONG);
+        // this.props.navigation.navigate('Out');
+        this.props.navigation.navigate('Login');
+      })
+      .catch(error => this.setState({errorMessage: error.message}));
+    // Alert.alert('Error Message', this.state.errorMessage);
   };
 
   handleChoosePhoto = () => {
@@ -58,11 +78,7 @@ class Profile extends Component {
             <View style={styles.wrapimgprofile1}>
               <TouchableOpacity onPress={this.handleChoosePhoto}>
                 <Image
-                  source={
-                    this.state.photo !== ''
-                      ? this.state.photo
-                      : require('../assets/img/profile.jpg')
-                  }
+                  source={{uri: this.state.userAvatar}}
                   style={styles.imgprofile}
                 />
               </TouchableOpacity>
@@ -78,18 +94,18 @@ class Profile extends Component {
           <View>
             <View style={styles.wrapitems}>
               <Icon name="user" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>{this.state.displayName}</Text>
+              <Text style={styles.textitems}>{this.state.userName}</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="mail" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>{this.state.email}</Text>
+              <Text style={styles.textitems}>{this.state.userEmail}</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="info" size={20} color="#4a675a" />
               <Text style={styles.textitems}>Available</Text>
             </View>
 
-            <TouchableOpacity onPress={this.signOutUser}>
+            <TouchableOpacity onPress={this.handleLogout}>
               <View style={styles.wrapitems1}>
                 <Icon name="log-out" size={20} color="orange" />
                 <Text style={styles.textitems1}>LOGOUT</Text>
@@ -136,6 +152,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     flexDirection: 'row',
     borderBottomWidth: 1,
+    paddingBottom: 10,
+    borderColor: '#eee',
+  },
+  wrapitems2: {
+    alignItems: 'center',
+    marginVertical: 10,
+    marginHorizontal: 20,
+    flexDirection: 'row',
     paddingBottom: 10,
     borderColor: '#eee',
   },

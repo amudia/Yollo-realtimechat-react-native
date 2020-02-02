@@ -17,7 +17,7 @@ export default class Header extends Component {
               <Text />
             </Left>
             <View style={styles.wraptextheader}>
-              <Text style={styles.textheader}>Contacts</Text>
+              <Text style={styles.textheader}>Find Friends</Text>
             </View>
             <Right style={styles.rightico}>
               <Icon name="search" size={16} color="#fff" />

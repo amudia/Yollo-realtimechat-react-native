@@ -155,11 +155,11 @@ const BottomNav = createBottomTabNavigator(
         },
       },
     },
-    Contact: {
+    Find: {
       screen: ContactNav,
       navigationOptions: {
         tabBarIcon: ({tintColor}) => {
-          return <Icon name="tablet" size={20} color={tintColor} />;
+          return <Icon name="search" size={20} color={tintColor} />;
         },
       },
     },

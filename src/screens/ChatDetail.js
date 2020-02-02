@@ -14,37 +14,116 @@ import IconA from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Left, Right, Button} from 'native-base';
 import {withNavigation} from 'react-navigation';
 // import {GiftedChat} from 'react-native-gifted-chat';
+import firebase from 'react-native-firebase';
+import AsyncStorage from '@react-native-community/async-storage';
+import {
+  GiftedChat,
+  Actions,
+  SystemMessage,
+  Send,
+  Bubble,
+  Composer,
+} from 'react-native-gifted-chat';
 
 class ChatDetailOriginal extends Component {
   constructor(props) {
     super(props);
-    this.state = {messages: []};
-    // this.onSend = this.onSend.bind(this);
+    this.state = {
+      message: '',
+      messageList: [],
+      person: this.props.navigation.getParam('item'),
+      userId: '',
+      userName: '',
+      userAvatar: '',
+    };
   }
-  // componentWillMount() {
-  //   this.setState({
-  //     messages: [
-  //       {
-  //         _id: 1,
-  //         text: 'Hello developer',
-  //         createdAt: new Date(Date.UTC(2016, 7, 30, 17, 20, 0)),
-  //         user: {
-  //           _id: 2,
-  //           name: 'React Native',
-  //           avatar:
-  //             'https://github.com/amudia/fooddelivery-native/blob/master/src/assets/images/user.jpg',
-  //         },
-  //       },
-  //     ],
-  //   });
-  // }
-  // onSend(messages = []) {
-  //   this.setState(previousState => {
-  //     return {
-  //       messages: GiftedChat.append(previousState.messages, messages),
-  //     };
-  //   });
-  // }
+  onSend = async () => {
+    if (this.state.message.length > 0) {
+      let msgId = firebase
+        .database()
+        .ref('messages')
+        .child(this.state.userId)
+        .child(this.state.person.id)
+        .push().key;
+      let updates = {};
+      let message = {
+        _id: msgId,
+        text: this.state.message,
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        user: {
+          _id: this.state.userId,
+          name: this.state.userName,
+          avatar: this.state.userAvatar,
+        },
+      };
+      updates[
+        'messages/' +
+          this.state.userId +
+          '/' +
+          this.state.person.id +
+          '/' +
+          msgId
+      ] = message;
+      updates[
+        'messages/' +
+          this.state.person.id +
+          '/' +
+          this.state.userId +
+          '/' +
+          msgId
+      ] = message;
+      firebase
+        .database()
+        .ref()
+        .update(updates);
+      this.setState({message: ''});
+    }
+  };
+
+  componentDidMount = async () => {
+    const userId = await AsyncStorage.getItem('userid');
+    const userName = await AsyncStorage.getItem('user.name');
+    const userAvatar = await AsyncStorage.getItem('user.photo');
+    this.setState({userId, userName, userAvatar});
+    firebase
+      .database()
+      .ref('messages')
+      .child(this.state.userId)
+      .child(this.state.person.id)
+      .on('child_added', val => {
+        this.setState(previousState => ({
+          messageList: GiftedChat.append(previousState.messageList, val.val()),
+        }));
+      });
+  };
+
+  renderBubble(props) {
+    return (
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: '#757EE3',
+          },
+        }}
+      />
+    );
+  }
+
+  renderSend(props) {
+    return (
+      <Send {...props}>
+        <View
+          style={{
+            marginRight: 15,
+            width: 35,
+            height: 35,
+          }}>
+          <Icon name="send" size={20} color="#847FE5" />
+        </View>
+      </Send>
+    );
+  }
   render() {
     return (
       <>
@@ -69,12 +148,12 @@ class ChatDetailOriginal extends Component {
                     }>
                     <View style={styles.wrapimg}>
                       <Image
-                        source={require('../assets/img/mawareva.jpg')}
+                        source={{uri: this.state.userAvatar}}
                         style={styles.img}
                       />
                     </View>
                   </TouchableOpacity>
-                  <Text style={styles.textheader}>Selingkuhan</Text>
+                  <Text style={styles.textheader}>{this.state.userName}</Text>
                 </View>
                 <Right style={styles.rightico}>
                   <Text />
@@ -83,49 +162,19 @@ class ChatDetailOriginal extends Component {
             </LinearGradient>
           </View>
 
-          {/* Message */}
-          <View style={styles.wrapmsg}>
-            <LinearGradient
-              start={{x: 0, y: 0}}
-              end={{x: 1.5, y: 0}}
-              colors={['#fff', '#FFF']}
-              style={styles.borderRadius}>
-              <View style={styles.msg}>
-                <Text style={styles.textmsg}>Hi</Text>
-              </View>
-            </LinearGradient>
-          </View>
-
-          {/* IncommingMessage */}
-          <View style={styles.wrapincomingmsg}>
-            <LinearGradient
-              start={{x: 0, y: 0}}
-              end={{x: 1.5, y: 0}}
-              colors={['#757EE3', '#A972F4']}
-              style={styles.borderRadius}>
-              <View style={styles.incomingmsg}>
-                <Text style={styles.textincomingmsg}>Hi, juga</Text>
-              </View>
-            </LinearGradient>
-          </View>
-
-          {/* <GiftedChat
-            messages={this.state.messages}
-            onSend={this.onSend}
-            user={{
-              _id: 1,
+          <GiftedChat
+            renderSend={this.renderSend}
+            renderBubble={this.renderBubble}
+            text={this.state.message}
+            onInputTextChanged={val => {
+              this.setState({message: val});
             }}
-          /> */}
-
-          {/* Compose */}
-        </View>
-        <View style={styles.wrapcompose}>
-          <TextInput placeholder="Message.." style={styles.compose} />
-          <View style={styles.btnsend}>
-            <Button transparent rounded iconLeft onPress={this.submit}>
-              <IconA name="send" size={20} color="#fff" />
-            </Button>
-          </View>
+            messages={this.state.messageList}
+            onSend={() => this.onSend()}
+            user={{
+              _id: this.state.userId,
+            }}
+          />
         </View>
       </>
     );
@@ -163,31 +212,32 @@ const styles = StyleSheet.create({
   img: {width: 40, height: 40, borderRadius: 50},
   wrapmsg: {
     marginLeft: 10,
-    width: '70%',
+    width: 'auto',
     borderRadius: 12,
     alignSelf: 'flex-start',
     marginVertical: 10,
     elevation: 3,
+    marginRight: '20%',
   },
   msg: {
-    height: 45,
     justifyContent: 'center',
     paddingLeft: 20,
     borderRadius: 12,
+    padding: 10,
   },
   textmsg: {color: '#000'},
   wrapincomingmsg: {
     marginRight: 10,
-    width: '70%',
+    width: 'auto',
     borderRadius: 12,
     alignSelf: 'flex-end',
     marginVertical: 10,
     elevation: 5,
+    marginLeft: '20%',
   },
   incomingmsg: {
-    height: 45,
     justifyContent: 'center',
-    paddingLeft: 20,
+    padding: 10,
   },
   textincomingmsg: {color: '#fff'},
   borderRadius: {borderRadius: 12},

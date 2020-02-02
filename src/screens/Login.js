@@ -1,29 +1,181 @@
 import React, {Component} from 'react';
-import {Text, View, StyleSheet, ScrollView, StatusBar} from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ScrollView,
+  StatusBar,
+  PermissionsAndroid,
+  ToastAndroid,
+  Platform,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import {TextInput, Button} from 'react-native-paper';
-import {GoogleSigninButton} from 'react-native-google-signin';
 import {withNavigation} from 'react-navigation';
 import {TouchableOpacity} from 'react-native-gesture-handler';
+
+import AsyncStorage from '@react-native-community/async-storage';
+import Geolocation from 'react-native-geolocation-service';
 import firebase from 'react-native-firebase';
 
 class LoginOriginal extends Component {
   constructor(props) {
     super(props);
+    this._isMounted = false;
     this.state = {
       email: '',
       password: '',
-      errorMessage: null,
     };
   }
-  loginPress = () => {
+  componentDidMount = async () => {
+    this._isMounted = true;
+    await this.getLocation();
+  };
+
+  componentWillUnmount() {
+    this._isMounted = false;
+    Geolocation.clearWatch();
+    Geolocation.stopObserving();
+  }
+  toRegister = () => {
+    this.props.navigation.navigate('Register');
+  };
+
+  inputHandler = (name, value) => {
+    this.setState(() => ({[name]: value}));
+  };
+  hasLocationPermission = async () => {
+    if (
+      Platform.OS === 'ios' ||
+      (Platform.OS === 'android' && Platform.Version < 23)
+    ) {
+      return true;
+    }
+    const hasPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+    if (hasPermission) {
+      return true;
+    }
+    const status = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    );
+    if (status === PermissionsAndroid.RESULTS.GRANTED) {
+      return true;
+    }
+    if (status === PermissionsAndroid.RESULTS.DENIED) {
+      ToastAndroid.show(
+        'Location Permission Denied By User.',
+        ToastAndroid.LONG,
+      );
+    } else if (status === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+      ToastAndroid.show(
+        'Location Permission Revoked By User.',
+        ToastAndroid.LONG,
+      );
+    }
+    return false;
+  };
+  getLocation = async () => {
+    const hasLocationPermission = await this.hasLocationPermission();
+
+    if (!hasLocationPermission) {
+      return;
+    }
+
+    this.setState({loading: true}, () => {
+      Geolocation.getCurrentPosition(
+        position => {
+          this.setState({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            loading: false,
+          });
+        },
+        error => {
+          this.setState({errorMessage: error});
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 8000,
+          maximumAge: 8000,
+          distanceFilter: 50,
+          forceRequestLocation: true,
+        },
+      );
+    });
+  };
+
+  handleChange = key => val => {
+    this.setState({[key]: val});
+  };
+  submitForm = async () => {
     const {email, password} = this.state;
-    firebase
-      .auth()
-      .signInWithEmailAndPassword(email, password)
-      .then(() => this.props.navigation.navigate('Chat'))
-      .catch(error => this.setState({errorMessage: error.message}));
+    if (email.length < 6) {
+      ToastAndroid.show(
+        'Please input a valid email address',
+        ToastAndroid.LONG,
+      );
+    } else if (password.length < 6) {
+      ToastAndroid.show(
+        'Password must be at least 6 characters',
+        ToastAndroid.LONG,
+      );
+    } else {
+      firebase
+        .database()
+        .ref('user/')
+        .orderByChild('/email')
+        .equalTo(email)
+        .once('value', result => {
+          let data = result.val();
+          if (data !== null) {
+            let user = Object.values(data);
+
+            AsyncStorage.setItem('user.email', user[0].email);
+            AsyncStorage.setItem('user.name', user[0].name);
+            AsyncStorage.setItem('user.photo', user[0].photo);
+          }
+        });
+      firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password)
+        .then(async response => {
+          firebase
+            .database()
+            .ref('/user/' + response.user.uid)
+            .update({
+              status: 'Online',
+              latitude: this.state.latitude || null,
+              longitude: this.state.longitude || null,
+            });
+          // AsyncStorage.setItem('user', response.user);
+          await AsyncStorage.setItem('userid', response.user.uid);
+          // await AsyncStorage.setItem('user', response.user);
+          ToastAndroid.show('Login success', ToastAndroid.LONG);
+          await this.props.navigation.navigate('Chat');
+        })
+        .catch(error => {
+          this.setState({
+            errorMessage: error.message,
+            email: '',
+            password: '',
+          });
+          ToastAndroid.show(this.state.errorMessage, ToastAndroid.LONG);
+        });
+      // Alert.alert('Error Message', this.state.errorMessage);
+    }
+  };
+  _toastWithDurationGravityOffsetHandler = () => {
+    //function to make Toast With Duration, Gravity And Offset
+    ToastAndroid.showWithGravityAndOffset(
+      `Hi, Welcome '${this.state.user.name}'`,
+      ToastAndroid.LONG, //can be SHORT, LONG
+      ToastAndroid.BOTTOM, //can be TOP, BOTTON, CENTER
+      25, //xOffset
+      50, //yOffset
+    );
   };
   render() {
     return (
@@ -49,6 +201,8 @@ class LoginOriginal extends Component {
               {this.state.errorMessage && (
                 <Text style={styles.texterr}>{this.state.errorMessage}</Text>
               )}
+              {/* {this.state.isLoading && <Spinner />} */}
+
               <View style={styles.wraptextinput}>
                 <TextInput
                   label="Email"
@@ -56,10 +210,12 @@ class LoginOriginal extends Component {
                   keyboardType="email-address"
                   mode="outlined"
                   style={styles.textInput}
-                  onChangeText={email => this.setState({email})}
-                  value={this.state.email}
+                  onChangeText={this.handleChange('email')}
                   theme={{
-                    colors: {primary: '#757EE3', underlineColor: 'transparent'},
+                    colors: {
+                      primary: '#757EE3',
+                      underlineColor: 'transparent',
+                    },
                   }}
                 />
                 <TextInput
@@ -67,18 +223,21 @@ class LoginOriginal extends Component {
                   mode="outlined"
                   secureTextEntry={true}
                   style={styles.textInput}
-                  onChangeText={password => this.setState({password})}
-                  value={this.state.password}
+                  onChangeText={this.handleChange('password')}
                   theme={{
-                    colors: {primary: '#757EE3', underlineColor: 'transparent'},
+                    colors: {
+                      primary: '#757EE3',
+                      underlineColor: 'transparent',
+                    },
                   }}
                 />
 
                 <Button
                   mode="outlined"
                   color="#fff"
+                  loading={this.state.loading}
                   style={styles.btnlogin}
-                  onPress={this.loginPress}>
+                  onPress={this.submitForm}>
                   LOGIN
                 </Button>
 
@@ -89,7 +248,7 @@ class LoginOriginal extends Component {
                     <Text style={styles.textsignup}> Sign up!</Text>
                   </TouchableOpacity>
                 </View>
-                <View style={styles.textor}>
+                {/* <View style={styles.textor}>
                   <Text>OR</Text>
                 </View>
 
@@ -98,9 +257,9 @@ class LoginOriginal extends Component {
                     style={styles.googleSign}
                     size={GoogleSigninButton.Size.Wide}
                     color={GoogleSigninButton.Color.Light}
-                    // onPress={this.signInGoogle}
-                  />
-                </View>
+                    onPress={this.signInGoogle}
+                    />
+                </View> */}
               </View>
             </View>
           </ScrollView>

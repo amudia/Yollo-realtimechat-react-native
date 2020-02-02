@@ -2,13 +2,19 @@ import React, {Component} from 'react';
 import {Text, View, StatusBar, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-
+import firebase from 'react-native-firebase';
 class SplashScreen extends Component {
   componentDidMount() {
+    const {currentUser} = firebase.auth();
     setTimeout(() => {
-      this.props.navigation.navigate('Login');
+      if (currentUser === null) {
+        this.props.navigation.navigate('Login');
+      } else {
+        this.props.navigation.navigate('Chat');
+      }
     }, 2000);
   }
+
   render() {
     return (
       <>
