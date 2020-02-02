@@ -26,6 +26,7 @@ class LoginOriginal extends Component {
     this.state = {
       email: '',
       password: '',
+      loading: false,
     };
   }
   componentDidMount = async () => {
@@ -111,6 +112,7 @@ class LoginOriginal extends Component {
     this.setState({[key]: val});
   };
   submitForm = async () => {
+    this.setState({loading: true});
     const {email, password} = this.state;
     if (email.length < 6) {
       ToastAndroid.show(

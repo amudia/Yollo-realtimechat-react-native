@@ -108,6 +108,7 @@ class RegisterOriginal extends Component {
     this.setState(() => ({[name]: value}));
   };
   submitForm = () => {
+    this.setState({loading: true});
     const {email, name, password} = this.state;
     if (name.length < 1) {
       ToastAndroid.show('Please input your fullname', ToastAndroid.LONG);

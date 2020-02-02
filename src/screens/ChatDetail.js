@@ -6,24 +6,15 @@ import {
   StatusBar,
   Image,
   TouchableOpacity,
-  TextInput,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
-import IconA from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Left, Right, Button} from 'native-base';
+import {Left, Right} from 'native-base';
 import {withNavigation} from 'react-navigation';
 // import {GiftedChat} from 'react-native-gifted-chat';
 import firebase from 'react-native-firebase';
 import AsyncStorage from '@react-native-community/async-storage';
-import {
-  GiftedChat,
-  Actions,
-  SystemMessage,
-  Send,
-  Bubble,
-  Composer,
-} from 'react-native-gifted-chat';
+import {GiftedChat, Send, Bubble, Composer} from 'react-native-gifted-chat';
 
 class ChatDetailOriginal extends Component {
   constructor(props) {
@@ -32,9 +23,9 @@ class ChatDetailOriginal extends Component {
       message: '',
       messageList: [],
       person: this.props.navigation.getParam('item'),
-      userId: '',
-      userName: '',
-      userAvatar: '',
+      userId: AsyncStorage.getItem('userid'),
+      userName: AsyncStorage.getItem('user.name'),
+      userAvatar: AsyncStorage.getItem('user.photo'),
     };
   }
   onSend = async () => {
@@ -142,18 +133,19 @@ class ChatDetailOriginal extends Component {
                   </Left>
                 </TouchableOpacity>
                 <View style={styles.wraptextheader}>
-                  <TouchableOpacity
-                    onPress={() =>
-                      this.props.navigation.navigate('ProfileFriend')
-                    }>
+                  <TouchableOpacity>
                     <View style={styles.wrapimg}>
                       <Image
-                        source={{uri: this.state.userAvatar}}
+                        source={{
+                          uri: this.state.person.photo,
+                        }}
                         style={styles.img}
                       />
                     </View>
                   </TouchableOpacity>
-                  <Text style={styles.textheader}>{this.state.userName}</Text>
+                  <Text style={styles.textheader}>
+                    {this.state.person.name}
+                  </Text>
                 </View>
                 <Right style={styles.rightico}>
                   <Text />

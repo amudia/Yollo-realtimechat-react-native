@@ -7,12 +7,14 @@ import {
   Image,
   TouchableOpacity,
   ToastAndroid,
+  PermissionsAndroid,
 } from 'react-native';
 import Header from '../components/Profile/Header';
 import Icon from 'react-native-vector-icons/Feather';
 import ImagePicker from 'react-native-image-picker';
 import firebase from 'react-native-firebase';
 import AsyncStorage from '@react-native-community/async-storage';
+import RNFetchBlob from 'rn-fetch-blob';
 
 class Profile extends Component {
   constructor(props) {
@@ -38,7 +40,19 @@ class Profile extends Component {
     const userEmail = await AsyncStorage.getItem('user.email');
     this.setState({userId, userName, userAvatar, userEmail});
   };
-
+  requestCameraPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      ]);
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  };
   handleLogout = async () => {
     await AsyncStorage.getItem('userid')
       .then(async userid => {
@@ -49,26 +63,74 @@ class Profile extends Component {
         await AsyncStorage.clear();
         firebase.auth().signOut();
         ToastAndroid.show('Logout success', ToastAndroid.LONG);
-        // this.props.navigation.navigate('Out');
         this.props.navigation.navigate('Login');
       })
       .catch(error => this.setState({errorMessage: error.message}));
-    // Alert.alert('Error Message', this.state.errorMessage);
   };
+  changeImage = async type => {
+    const Blob = RNFetchBlob.polyfill.Blob;
+    // eslint-disable-next-line no-unused-vars
+    const fs = RNFetchBlob.fs;
+    window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest;
+    window.Blob = Blob;
 
-  handleChoosePhoto = () => {
     const options = {
-      noData: true,
+      title: 'Select Avatar',
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+      mediaType: 'photo',
     };
-    // eslint-disable-next-line prettier/prettier
-    ImagePicker.launchImageLibrary(options, (response) => {
-      const source = {uri: response.uri};
-      if (response.uri) {
-        this.setState({photo: source});
-      }
-    });
+
+    let cameraPermission =
+      (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA)) &&
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      ) &&
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      );
+    if (!cameraPermission) {
+      cameraPermission = await this.requestCameraPermission();
+    } else {
+      ImagePicker.showImagePicker(options, response => {
+        if (response.didCancel) {
+          ToastAndroid.show('You cancelled image picker', ToastAndroid.LONG);
+        } else if (response.error) {
+          ToastAndroid.show(response.error, ToastAndroid.LONG);
+        } else if (response.customButton) {
+          console.log('User tapped custom button: ', response.customButton);
+        } else {
+          this.setState({loading: true});
+          ToastAndroid.show('Please wait...', ToastAndroid.LONG);
+          const imageRef = firebase
+            .storage()
+            .ref('avatar/' + this.state.userId)
+            .child('photo');
+          imageRef
+            .putFile(response.path)
+            .then(data => {
+              ToastAndroid.show('Upload success', ToastAndroid.LONG);
+              firebase
+                .database()
+                .ref('user/' + this.state.userId)
+                .update({photo: data.downloadURL});
+              this.setState({userAvatar: data.downloadURL});
+              AsyncStorage.setItem('user.photo', this.state.userAvatar);
+            })
+
+            .catch(err => console.log(err));
+        }
+      });
+    }
   };
   render() {
+    const {uploading} = this.state;
+
+    // eslint-disable-next-line no-unused-vars
+    const disabledStyle = uploading ? styles.disabledBtn : {};
+
     return (
       <>
         <StatusBar barStyle="light-content" backgroundColor="#847FE5" />
@@ -76,14 +138,15 @@ class Profile extends Component {
           <Header />
           <View style={styles.wrapimgprofile}>
             <View style={styles.wrapimgprofile1}>
-              <TouchableOpacity onPress={this.handleChoosePhoto}>
+              <TouchableOpacity onPress={this.changeImage}>
                 <Image
+                  loadingIndicatorSource={this.state.loading}
                   source={{uri: this.state.userAvatar}}
                   style={styles.imgprofile}
                 />
               </TouchableOpacity>
               <View style={styles.wrapcamera}>
-                <TouchableOpacity onPress={this.handleChoosePhoto}>
+                <TouchableOpacity onPress={this.changeImage}>
                   <View style={styles.wrapcamera1}>
                     <Icon name="camera" size={20} color="#fff" />
                   </View>

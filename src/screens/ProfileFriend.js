@@ -14,7 +14,8 @@ class ProfileFriend extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      photo: '',
+      person: props.navigation.getParam('item'),
+      items: props.navigation.getParam('item'),
     };
   }
   render() {
@@ -26,7 +27,9 @@ class ProfileFriend extends Component {
           <View style={styles.wrapimgprofile}>
             <View style={styles.wrapimgprofile1}>
               <Image
-                source={require('../assets/img/mawareva.jpg')}
+                source={{
+                  uri: this.state.person.photo,
+                }}
                 style={styles.imgprofile}
               />
             </View>
@@ -34,15 +37,15 @@ class ProfileFriend extends Component {
           <View>
             <View style={styles.wrapitems}>
               <Icon name="user" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>Mawar Eva</Text>
+              <Text style={styles.textitems}>{this.state.person.name}</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="mail" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>mawareva@gmail.com</Text>
+              <Text style={styles.textitems}>{this.state.person.email}</Text>
             </View>
             <View style={styles.wrapitems}>
               <Icon name="info" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>Available</Text>
+              <Text style={styles.textitems}>{this.state.person.status}</Text>
             </View>
             <TouchableOpacity>
               <View style={styles.wrapitems}>

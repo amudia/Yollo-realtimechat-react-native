@@ -10,18 +10,7 @@ import Header from '../components/ListChat/Header';
 import {ListItem} from 'react-native-elements';
 import firebase from 'react-native-firebase';
 import AsyncStorage from '@react-native-community/async-storage';
-
-const contact = [
-  {
-    id: 1,
-    name: 'User 1',
-    avatar_url:
-      'https://s3.amazonaws.com/uifaces/faces/twitter/adhamdannaway/128.jpg',
-
-    chat: 'Hello',
-    badge: '5',
-  },
-];
+import {Spinner} from 'native-base';
 
 class ListChat extends Component {
   constructor(props) {
@@ -41,6 +30,7 @@ class ListChat extends Component {
       .ref('/user')
       .on('child_added', data => {
         let person = data.val();
+        // eslint-disable-next-line eqeqeq
         if (person.id != uid) {
           this.setState(prevData => {
             return {userList: [...prevData.userList, person]};
@@ -52,7 +42,10 @@ class ListChat extends Component {
 
   renderItem = ({item}) => (
     <TouchableOpacity
-      onPress={() => this.props.navigation.navigate('ChatDetail', {item})}>
+      onPress={() => this.props.navigation.navigate('ChatDetail', {item})}
+      onLongPress={() =>
+        this.props.navigation.navigate('ProfileFriend', {item})
+      }>
       <ListItem
         title={item.name}
         titleStyle={styles.personName}
@@ -62,7 +55,11 @@ class ListChat extends Component {
           source: item.photo && {uri: item.photo},
         }}
         bottomDivider
+        badge={item.status == 'Online'}
         onPress={() => this.props.navigation.navigate('ChatDetail', {item})}
+        onLongPress={() =>
+          this.props.navigation.navigate('ProfileFriend', {item})
+        }
       />
     </TouchableOpacity>
   );
@@ -74,12 +71,12 @@ class ListChat extends Component {
         <View style={styles.root}>
           <Header />
           <View>
+            {this.state.userList.length < 1 && <Spinner />}
             <FlatList
               data={this.state.userList}
               onRefresh={() => console.log('refresh')}
               refreshing={this.state.refreshing}
               renderItem={this.renderItem}
-              // keyExtractor={this.keyExtractor}
             />
           </View>
         </View>

@@ -3,7 +3,7 @@ const firebase = require('react-native-firebase');
 module.exports = {
   firebase,
   db: () => firebase.database(),
-  users: () => firebase.auth(),
+  user: () => firebase.auth(),
   setListener: (endpoint, updaterFn) => {
     firebase
       .database()
