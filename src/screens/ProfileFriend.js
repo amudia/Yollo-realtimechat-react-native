@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Header from '../components/ProfileFriend/Header';
 import Icon from 'react-native-vector-icons/Feather';
+import {TextInput, Button} from 'react-native-paper';
 
 class ProfileFriend extends Component {
   constructor(props) {
@@ -53,12 +54,19 @@ class ProfileFriend extends Component {
                 <Text style={styles.textitems2}>See Location</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <View style={styles.wrapitems1}>
                 <Icon name="user-x" size={18} color="orange" />
                 <Text style={styles.textitems1}>BLOCK</Text>
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+            <Button
+              mode="outlined"
+              color="#fff"
+              style={styles.btnlogin}
+              onPress={() => this.props.navigation.goBack()}>
+              BACK
+            </Button>
           </View>
         </View>
       </>
@@ -116,6 +124,12 @@ const styles = StyleSheet.create({
   textitems: {paddingLeft: 20, color: '#4a675a'},
   textitems1: {paddingLeft: 10, color: 'orange', fontWeight: 'bold'},
   textitems2: {paddingLeft: 20, color: '#757EE3'},
+  btnlogin: {
+    borderColor: '#757EE3',
+    backgroundColor: '#757EE3',
+    marginTop: 20,
+    marginHorizontal: 40,
+  },
 });
 
 export default ProfileFriend;

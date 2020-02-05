@@ -6,15 +6,15 @@ import {
   StatusBar,
   Image,
   TouchableOpacity,
+  ImageBackground,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import {Left, Right} from 'native-base';
 import {withNavigation} from 'react-navigation';
-// import {GiftedChat} from 'react-native-gifted-chat';
 import firebase from 'react-native-firebase';
 import AsyncStorage from '@react-native-community/async-storage';
-import {GiftedChat, Send, Bubble, Composer} from 'react-native-gifted-chat';
+import {GiftedChat, Send, Bubble, InputToolbar} from 'react-native-gifted-chat';
 
 class ChatDetailOriginal extends Component {
   constructor(props) {
@@ -28,6 +28,7 @@ class ChatDetailOriginal extends Component {
       userAvatar: AsyncStorage.getItem('user.photo'),
     };
   }
+
   onSend = async () => {
     if (this.state.message.length > 0) {
       let msgId = firebase
@@ -104,15 +105,25 @@ class ChatDetailOriginal extends Component {
   renderSend(props) {
     return (
       <Send {...props}>
-        <View
-          style={{
-            marginRight: 15,
-            width: 35,
-            height: 35,
-          }}>
-          <Icon name="send" size={20} color="#847FE5" />
+        <View style={styles.btnsend1}>
+          <Icon name="send" size={20} color="#847FE5" elevation={3} />
         </View>
       </Send>
+    );
+  }
+  renderInputToolbar(props) {
+    return (
+      <InputToolbar
+        {...props}
+        containerStyle={{
+          marginLeft: 3,
+          marginRight: 3,
+          marginBottom: 3,
+          borderColor: 'grey',
+          borderRadius: 50,
+          elevation: 0,
+        }}
+      />
     );
   }
   render() {
@@ -120,53 +131,59 @@ class ChatDetailOriginal extends Component {
       <>
         <StatusBar barStyle="light-content" backgroundColor="#847FE5" />
         <View style={styles.root}>
-          <View style={styles.wrapheader}>
-            <LinearGradient
-              start={{x: 0, y: 0}}
-              end={{x: 1.5, y: 0}}
-              colors={['#757EE3', '#A972F4']}>
-              <View style={styles.header}>
-                <TouchableOpacity
-                  onPress={() => this.props.navigation.goBack()}>
-                  <Left style={styles.leftico}>
-                    <Icon name="arrow-left-circle" size={24} color="#fff" />
-                  </Left>
-                </TouchableOpacity>
-                <View style={styles.wraptextheader}>
-                  <TouchableOpacity>
-                    <View style={styles.wrapimg}>
-                      <Image
-                        source={{
-                          uri: this.state.person.photo,
-                        }}
-                        style={styles.img}
-                      />
-                    </View>
+          <ImageBackground
+            source={require('../assets/img/back.jpg')}
+            style={{width: '100%', height: '100%'}}>
+            <View style={styles.wrapheader}>
+              <LinearGradient
+                start={{x: 0, y: 0}}
+                end={{x: 1.5, y: 0}}
+                colors={['#757EE3', '#A972F4']}>
+                <View style={styles.header}>
+                  <TouchableOpacity
+                    onPress={() => this.props.navigation.goBack()}>
+                    <Left style={styles.leftico}>
+                      <Icon name="chevron-left" size={24} color="#fff" />
+                    </Left>
                   </TouchableOpacity>
-                  <Text style={styles.textheader}>
-                    {this.state.person.name}
-                  </Text>
+                  <View style={styles.wraptextheader}>
+                    <TouchableOpacity>
+                      <View style={styles.wrapimg}>
+                        <Image
+                          source={{
+                            uri: this.state.person.photo,
+                          }}
+                          style={styles.img}
+                        />
+                      </View>
+                    </TouchableOpacity>
+                    <Text style={styles.textheader}>
+                      {this.state.person.name}
+                    </Text>
+                  </View>
+                  <Right style={styles.rightico}>
+                    <Text />
+                  </Right>
                 </View>
-                <Right style={styles.rightico}>
-                  <Text />
-                </Right>
-              </View>
-            </LinearGradient>
-          </View>
+              </LinearGradient>
+            </View>
 
-          <GiftedChat
-            renderSend={this.renderSend}
-            renderBubble={this.renderBubble}
-            text={this.state.message}
-            onInputTextChanged={val => {
-              this.setState({message: val});
-            }}
-            messages={this.state.messageList}
-            onSend={() => this.onSend()}
-            user={{
-              _id: this.state.userId,
-            }}
-          />
+            <GiftedChat
+              renderSend={this.renderSend}
+              renderBubble={this.renderBubble}
+              renderInputToolbar={this.renderInputToolbar}
+              text={this.state.message}
+              onInputTextChanged={val => {
+                this.setState({message: val});
+              }}
+              alwaysShowSend={true}
+              messages={this.state.messageList}
+              onSend={() => this.onSend()}
+              user={{
+                _id: this.state.userId,
+              }}
+            />
+          </ImageBackground>
         </View>
       </>
     );
@@ -259,6 +276,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     backgroundColor: '#757EE3',
     elevation: 2,
+  },
+  btnsend1: {
+    marginRight: 15,
+    width: 35,
+    height: 35,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

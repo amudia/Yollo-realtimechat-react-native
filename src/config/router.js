@@ -12,6 +12,7 @@ import Contact from '../screens/Contact';
 import AddFriend from '../screens/AddFriend';
 
 import Profile from '../screens/Profile';
+import EditProfile from '../screens/EditProfile';
 
 import Login from '../screens/Login';
 import Register from '../screens/Register';
@@ -124,6 +125,12 @@ const ProfileNav = createStackNavigator(
   {
     Profile: {
       screen: Profile,
+      navigationOptions: {
+        headerShown: false,
+      },
+    },
+    EditProfile: {
+      screen: EditProfile,
       navigationOptions: {
         headerShown: false,
       },

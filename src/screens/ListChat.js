@@ -55,6 +55,7 @@ class ListChat extends Component {
           source: item.photo && {uri: item.photo},
         }}
         bottomDivider
+        // eslint-disable-next-line eqeqeq
         badge={item.status == 'Online'}
         onPress={() => this.props.navigation.navigate('ChatDetail', {item})}
         onLongPress={() =>

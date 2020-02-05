@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import Header from '../components/Contact/Header';
 import Icon from 'react-native-vector-icons/Feather';
-import {ListItem} from 'react-native-elements';
 import AsyncStorage from '@react-native-community/async-storage';
 import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -39,6 +38,7 @@ class Contact extends Component {
       uid: null,
     };
   }
+
   componentDidMount = async () => {
     await this.getUser();
     await this.getLocation();
@@ -51,10 +51,8 @@ class Contact extends Component {
       .ref('/user')
       .on('child_added', result => {
         let data = result.val();
+        // eslint-disable-next-line eqeqeq
         if (data !== null && data.id != uid) {
-          // console.log(data);
-          // let users = Object.values(data);
-          // console.log(users);
           this.setState(prevData => {
             return {userList: [...prevData.userList, data]};
           });
@@ -148,7 +146,7 @@ class Contact extends Component {
         onPress={() => this.props.navigation.navigate('ChatDetail', {item})}>
         <View style={styles.card}>
           <Text style={styles.name}>{item.name}</Text>
-          <View style={{alignItems: 'center'}}>
+          <View style={styles.itemscoro}>
             <Image source={{uri: item.photo}} style={styles.imgcard} />
           </View>
           <Icon name="user" style={styles.icon} />
@@ -168,7 +166,7 @@ class Contact extends Component {
               {/* <Header /> */}
               <View>
                 <MapView
-                  style={{width: '100%', height: '100%'}}
+                  style={styles.mapview}
                   showsMyLocationButton={true}
                   provider={PROVIDER_GOOGLE}
                   ref={map => (this._map = map)}
@@ -179,8 +177,8 @@ class Contact extends Component {
                   showsTraffic={true}
                   region={this.state.mapRegion}
                   initialRegion={{
-                    latitude: -7.755322,
-                    longitude: 110.381174,
+                    latitude: this.state.latitude,
+                    longitude: this.state.longitude,
                     latitudeDelta: LATITUDE_DELTA,
                     longitudeDelta: LONGITUDE_DELTA,
                   }}>
@@ -197,14 +195,14 @@ class Contact extends Component {
                           longitude: item.longitude || 0,
                         }}
                         onCalloutPress={() => {
-                          this.props.navigation.navigate('FriendProfile', {
+                          this.props.navigation.navigate('ProfileFriend', {
                             item,
                           });
                         }}>
-                        <View>
+                        <View style={styles.wrapimg}>
                           <Image
                             source={{uri: item.photo}}
-                            style={{width: 40, height: 40, borderRadius: 50}}
+                            style={styles.fotomap}
                           />
                           <Text>{item.name}</Text>
                         </View>
@@ -221,7 +219,7 @@ class Contact extends Component {
                   containerCustomStyle={styles.corousel}
                   sliderWidth={Dimensions.get('window').width}
                   itemWidth={240}
-                  style={{flex: 1}}
+                  style={styles.flex}
                   onSnapToItem={index => this.onCorouselItemChange(index)}
                 />
               </View>
@@ -310,16 +308,17 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     height: 170,
     width: 240,
     padding: 18,
-    borderRadius: 15,
+    borderRadius: 5,
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: 'orange',
+    marginBottom: 10,
   },
   imgcard: {
     height: 60,
@@ -329,17 +328,22 @@ const styles = StyleSheet.create({
     marginTop: -10,
   },
   name: {
-    color: '#ACB5A0',
+    color: '#4a675a',
     fontSize: 16,
     alignSelf: 'center',
     textAlign: 'center',
     position: 'absolute',
   },
   icon: {
-    color: '#ACB5A0',
+    color: '#4a675a',
     fontSize: 32,
     marginTop: 100,
   },
+  itemscoro: {alignItems: 'center'},
+  mapview: {width: '100%', height: '100%'},
+  fotomap: {width: 40, height: 40, borderRadius: 50},
+  flex: {flex: 1},
+  wrapimg: {alignItems: 'center'},
 });
 
 export default Contact;

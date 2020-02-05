@@ -15,31 +15,43 @@ import ImagePicker from 'react-native-image-picker';
 import firebase from 'react-native-firebase';
 import AsyncStorage from '@react-native-community/async-storage';
 import RNFetchBlob from 'rn-fetch-blob';
+import {withNavigation} from 'react-navigation';
+// import {Button} from 'react-native-paper';
 
-class Profile extends Component {
+class Profiles extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
       userId: null,
       permissionsGranted: null,
       errorMessage: null,
       loading: false,
-      updatesEnabled: false,
-      location: {},
       photo: null,
       imageUri: null,
       imgSource: '',
-      uploading: false,
     };
   }
+  goEdit = () => {
+    this.props.navigation.navigate('EditProfile');
+  };
   componentDidMount = async () => {
     const userId = await AsyncStorage.getItem('userid');
     const userName = await AsyncStorage.getItem('user.name');
     const userAvatar = await AsyncStorage.getItem('user.photo');
     const userEmail = await AsyncStorage.getItem('user.email');
-    this.setState({userId, userName, userAvatar, userEmail});
+    const userPhone = await AsyncStorage.getItem('user.phone');
+    this.setState({userId, userName, userAvatar, userEmail, userPhone});
+    this.props.navigation.addListener('didFocus', this.onFocus);
   };
+  async onFocus() {
+    const userId = await AsyncStorage.getItem('userid');
+    const userName = await AsyncStorage.getItem('user.name');
+    const userAvatar = await AsyncStorage.getItem('user.photo');
+    const userEmail = await AsyncStorage.getItem('user.email');
+    const userPhone = await AsyncStorage.getItem('user.phone');
+    this.setState({userId, userName, userAvatar, userEmail, userPhone});
+    console.log(userName);
+  }
   requestCameraPermission = async () => {
     try {
       const granted = await PermissionsAndroid.requestMultiple([
@@ -126,16 +138,19 @@ class Profile extends Component {
     }
   };
   render() {
-    const {uploading} = this.state;
-
-    // eslint-disable-next-line no-unused-vars
-    const disabledStyle = uploading ? styles.disabledBtn : {};
-
     return (
       <>
         <StatusBar barStyle="light-content" backgroundColor="#847FE5" />
         <View style={styles.root}>
           <Header />
+          <View style={styles.wrapicosettings}>
+            <TouchableOpacity
+              onPress={() => this.props.navigation.navigate('EditProfile')}>
+              <View style={styles.icosettings}>
+                <Icon name="settings" size={20} color="#fff" />
+              </View>
+            </TouchableOpacity>
+          </View>
           <View style={styles.wrapimgprofile}>
             <View style={styles.wrapimgprofile1}>
               <TouchableOpacity onPress={this.changeImage}>
@@ -164,10 +179,9 @@ class Profile extends Component {
               <Text style={styles.textitems}>{this.state.userEmail}</Text>
             </View>
             <View style={styles.wrapitems}>
-              <Icon name="info" size={20} color="#4a675a" />
-              <Text style={styles.textitems}>Available</Text>
+              <Icon name="smartphone" size={20} color="#4a675a" />
+              <Text style={styles.textitems}>{this.state.userPhone}</Text>
             </View>
-
             <TouchableOpacity onPress={this.handleLogout}>
               <View style={styles.wrapitems1}>
                 <Icon name="log-out" size={20} color="orange" />
@@ -186,7 +200,7 @@ const styles = StyleSheet.create({
   wrapimgprofile: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 50,
+    marginTop: 10,
     marginBottom: 20,
   },
   wrapimgprofile1: {
@@ -235,9 +249,28 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     paddingBottom: 10,
     borderColor: '#eee',
+    marginTop: 40,
   },
   textitems: {paddingLeft: 20, color: '#4a675a'},
   textitems1: {paddingLeft: 10, color: 'orange', fontWeight: 'bold'},
+  btnlogin: {
+    borderColor: '#757EE3',
+    backgroundColor: '#757EE3',
+    marginTop: 20,
+    marginHorizontal: 40,
+  },
+  icosettings: {
+    backgroundColor: '#847FE5',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+    elevation: 5,
+  },
+  wrapicosettings: {alignItems: 'flex-end', marginRight: 20},
 });
+
+const Profile = withNavigation(Profiles);
 
 export default Profile;

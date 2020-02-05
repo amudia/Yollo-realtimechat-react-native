@@ -3,8 +3,10 @@ import {Text, View, StyleSheet} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import {Left, Right} from 'native-base';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import {withNavigation} from 'react-navigation';
 
-export default class Header extends Component {
+class HeaderOriginal extends Component {
   render() {
     return (
       <View style={styles.wrapheader}>
@@ -21,6 +23,21 @@ export default class Header extends Component {
               <Text style={styles.textheader}>My Profile</Text>
             </View>
             <Right style={styles.rightico}>
+              {/* <TouchableOpacity
+                onPress={() => this.props.navigation.navigate('EditProfile')}>
+                <View
+                  style={{
+                    backgroundColor: '#757EE3',
+                    height: 40,
+                    width: 40,
+                    elevation: 4,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 50,
+                  }}>
+                  <Icon name="settings" color="#fff" size={16} />
+                </View>
+              </TouchableOpacity> */}
               <Text />
             </Right>
           </View>
@@ -48,5 +65,10 @@ const styles = StyleSheet.create({
   rightico: {
     alignItems: 'flex-end',
     paddingRight: 30,
+    justifyContent: 'flex-end',
   },
 });
+
+const Header = withNavigation(HeaderOriginal);
+
+export default Header;

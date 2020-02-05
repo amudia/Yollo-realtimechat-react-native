@@ -111,15 +111,34 @@ class LoginOriginal extends Component {
   handleChange = key => val => {
     this.setState({[key]: val});
   };
+
+  clearState() {
+    this.setState({
+      email: '',
+      password: '',
+    });
+  }
   submitForm = async () => {
-    this.setState({loading: true});
     const {email, password} = this.state;
+    await this.setState({
+      loading: true,
+    });
     if (email.length < 6) {
+      await this.setState({
+        loading: false,
+        email: '',
+        password: '',
+      });
       ToastAndroid.show(
         'Please input a valid email address',
         ToastAndroid.LONG,
       );
     } else if (password.length < 6) {
+      await this.setState({
+        loading: false,
+        email: '',
+        password: '',
+      });
       ToastAndroid.show(
         'Password must be at least 6 characters',
         ToastAndroid.LONG,
@@ -152,21 +171,19 @@ class LoginOriginal extends Component {
               latitude: this.state.latitude || null,
               longitude: this.state.longitude || null,
             });
-          // AsyncStorage.setItem('user', response.user);
           await AsyncStorage.setItem('userid', response.user.uid);
-          // await AsyncStorage.setItem('user', response.user);
           ToastAndroid.show('Login success', ToastAndroid.LONG);
           await this.props.navigation.navigate('Chat');
         })
         .catch(error => {
           this.setState({
-            errorMessage: error.message,
+            loading: false,
             email: '',
             password: '',
+            errorMessage: error.message,
           });
           ToastAndroid.show(this.state.errorMessage, ToastAndroid.LONG);
         });
-      // Alert.alert('Error Message', this.state.errorMessage);
     }
   };
   _toastWithDurationGravityOffsetHandler = () => {
@@ -238,6 +255,7 @@ class LoginOriginal extends Component {
                   mode="outlined"
                   color="#fff"
                   loading={this.state.loading}
+                  disabled={this.state.loading}
                   style={styles.btnlogin}
                   onPress={this.submitForm}>
                   LOGIN

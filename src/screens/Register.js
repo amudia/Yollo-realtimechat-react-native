@@ -111,13 +111,22 @@ class RegisterOriginal extends Component {
     this.setState({loading: true});
     const {email, name, password} = this.state;
     if (name.length < 1) {
+      this.setState({
+        loading: false,
+      });
       ToastAndroid.show('Please input your fullname', ToastAndroid.LONG);
     } else if (email.length < 6) {
+      this.setState({
+        loading: false,
+      });
       ToastAndroid.show(
         'Please input a valid email address',
         ToastAndroid.LONG,
       );
     } else if (password.length < 6) {
+      this.setState({
+        loading: false,
+      });
       ToastAndroid.show(
         'Password must be at least 6 characters',
         ToastAndroid.LONG,
@@ -135,7 +144,7 @@ class RegisterOriginal extends Component {
               name: this.state.name,
               status: 'Offline',
               email: this.state.email,
-              photo: 'https://image.flaticon.com/icons/png/512/147/147144.png',
+              photo: 'https://image.flaticon.com/icons/png/512/145/145843.png',
               latitude: this.state.latitude,
               longitude: this.state.longitude,
               id: response.user.uid,
@@ -158,6 +167,7 @@ class RegisterOriginal extends Component {
         .catch(error => {
           this.setState({
             errorMessage: error.message,
+            loading: false,
             name: '',
             email: '',
             password: '',
@@ -236,6 +246,7 @@ class RegisterOriginal extends Component {
                   mode="outlined"
                   color="#FFF"
                   loading={this.state.loading}
+                  disabled={this.state.loading}
                   style={styles.btnregister}
                   onPress={this.submitForm}>
                   REGISTER
