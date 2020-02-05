@@ -1,4 +1,4 @@
-<h1 align='center'>ConnectYou <br>React Native Chat Apps with Maps</h1>
+<h1 align='center'>Yollo Chat <br>React Native Chat Apps with Maps</h1>
 
 <!-- <p align='center'>
     <img width="400" src='./screenshots/1.jpg' />
@@ -15,7 +15,7 @@
 ![React Native Geolocation Service](https://img.shields.io/badge/react%20native%20geolocation%20service-v3.1.0-brightgreen)
 ![React Native Gifted Chat](https://img.shields.io/badge/react%20native%20gifted%20chat-v0.11.0-yellowgreen)
 
-<p align='justify'>ConnectYou is a Chat Application with maps feature to track/show the user's friend location near to user's current location. GeoChat was built using React Native and Firebase real-time database.</p>
+<p align='justify'>Yollo Chat is a Chat Application with maps feature to track/show the user's friend location near to user's current location. GeoChat was built using React Native and Firebase real-time database.</p>
 
 ## Requirements
 
